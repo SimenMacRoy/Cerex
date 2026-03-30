@@ -1,0 +1,54 @@
+# ─────────────────────────────────────────────────────────────
+# Cerex Platform — Dev Profile Configuration
+# ─────────────────────────────────────────────────────────────
+
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  # ── PostgreSQL ─────────────────────────────────────────────
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:cerex_dev}
+    username: ${DB_USERNAME:cerex}
+    password: ${DB_PASSWORD:cerex_dev_password}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 20000
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+
+  # ── Redis ──────────────────────────────────────────────────
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 5000ms
+
+    # ── MongoDB ────────────────────────────────────────────────
+    mongodb:
+      uri: ${MONGO_URI:mongodb://localhost:27017/cerex_dev}
+
+    # ── Elasticsearch ──────────────────────────────────────────
+    elasticsearch:
+      uris: ${ELASTICSEARCH_URIS:http://localhost:9200}
+
+  # ── Kafka ──────────────────────────────────────────────────
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+  # ── Flyway ─────────────────────────────────────────────────
+  flyway:
+    enabled: true
+
+# ── Logging ─────────────────────────────────────────────────
+logging:
+  level:
+    root: INFO
+    com.cerex: DEBUG
+    org.springframework.security: DEBUG
