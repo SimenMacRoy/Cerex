@@ -18,7 +18,7 @@ export default function GroceryPage() {
         <div className="flex justify-center py-16"><LoadingSpinner size="lg" /></div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {data?.data?.map((grocery) => (
+          {data?.data?.content?.map((grocery) => (
             <div key={grocery.id} className="card group">
               <div className="h-40 bg-gray-200 dark:bg-gray-700 overflow-hidden">
                 {grocery.imageUrl && <img src={grocery.imageUrl} alt={grocery.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />}
@@ -36,7 +36,7 @@ export default function GroceryPage() {
           ))}
         </div>
       )}
-      {!isLoading && !data?.data?.length && (
+      {!isLoading && !data?.data?.content?.length && (
         <div className="text-center py-16 text-gray-500">{t('common.noResults')}</div>
       )}
     </div>

@@ -67,10 +67,10 @@ export default function SearchPage() {
           <div className="flex justify-center py-12"><LoadingSpinner size="lg" /></div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recipes?.data?.map((recipe) => (
+            {recipes?.data?.content?.map((recipe) => (
               <RecipeCard key={recipe.id} recipe={recipe} />
             ))}
-            {!recipes?.data?.length && (
+            {!recipes?.data?.content?.length && (
               <div className="col-span-full text-center py-12 text-gray-500">{t('common.noResults')}</div>
             )}
           </div>
@@ -80,7 +80,7 @@ export default function SearchPage() {
           <div className="flex justify-center py-12"><LoadingSpinner size="lg" /></div>
         ) : (
           <div className="space-y-4">
-            {restaurants?.data?.map((r) => (
+            {restaurants?.data?.content?.map((r) => (
               <Link key={r.id} to={`/restaurants/${r.id}`} className="card p-4 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                 {r.imageUrl && <img src={r.imageUrl} alt={r.name} className="w-16 h-16 rounded-xl object-cover" />}
                 <div>
@@ -89,7 +89,7 @@ export default function SearchPage() {
                 </div>
               </Link>
             ))}
-            {!restaurants?.data?.length && (
+            {!restaurants?.data?.content?.length && (
               <div className="text-center py-12 text-gray-500">{t('common.noResults')}</div>
             )}
           </div>

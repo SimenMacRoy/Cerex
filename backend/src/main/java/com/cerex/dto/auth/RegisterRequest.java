@@ -22,14 +22,18 @@ public class RegisterRequest {
 
     @NotBlank(message = "Password is required")
     @Size(min = 8, max = 128, message = "Password must be between 8 and 128 characters")
-    @Pattern(
-        regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#])[A-Za-z\\d@$!%*?&#]{8,}$",
-        message = "Password must contain at least one uppercase, one lowercase, one digit, and one special character"
-    )
     private String password;
 
-    @NotBlank(message = "Display name is required")
+    @NotBlank(message = "First name is required")
     @Size(min = 2, max = 100)
+    private String firstName;
+
+    @NotBlank(message = "Last name is required")
+    @Size(min = 2, max = 100)
+    private String lastName;
+
+    /** Optional — derived from firstName + lastName if not provided. */
+    @Size(max = 100)
     private String displayName;
 
     @Size(max = 10)
@@ -39,6 +43,13 @@ public class RegisterRequest {
     private String preferredCurrency;
 
     private boolean gdprConsent;
-
     private boolean marketingConsent;
+
+    /** Returns displayName, falling back to "firstName lastName". */
+    public String getResolvedDisplayName() {
+        if (displayName != null && !displayName.isBlank()) {
+            return displayName;
+        }
+        return (firstName + " " + lastName).trim();
+    }
 }

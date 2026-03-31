@@ -62,12 +62,12 @@ export default function HomePage() {
           <div className="flex justify-center py-12"><LoadingSpinner size="lg" /></div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {trending?.data?.slice(0, 8).map((recipe) => (
+            {trending?.data?.content?.slice(0, 8).map((recipe) => (
               <RecipeCard key={recipe.id} recipe={recipe} />
             ))}
           </div>
         )}
-        {!trendingLoading && !trending?.data?.length && (
+        {!trendingLoading && !trending?.data?.content?.length && (
           <div className="text-center py-12 text-gray-500">
             <p className="text-lg">{t('common.noResults')}</p>
             <p className="text-sm mt-2">Discover recipes from around the world soon!</p>
@@ -91,7 +91,7 @@ export default function HomePage() {
             <div className="flex justify-center py-12"><LoadingSpinner size="lg" /></div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {restaurants?.data?.slice(0, 6).map((restaurant) => (
+              {restaurants?.data?.content?.slice(0, 6).map((restaurant) => (
                 <Link key={restaurant.id} to={`/restaurants/${restaurant.id}`} className="card p-0 group">
                   <div className="h-40 bg-gray-200 dark:bg-gray-700 overflow-hidden">
                     {restaurant.imageUrl && (

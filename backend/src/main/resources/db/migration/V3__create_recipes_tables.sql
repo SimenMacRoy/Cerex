@@ -211,14 +211,6 @@ CREATE TABLE social_schema.reviews (
     UNIQUE(reviewer_id, entity_type, entity_id)
 );
 
-CREATE TABLE social_schema.follows (
-    follower_id     UUID            NOT NULL REFERENCES users_schema.users(id) ON DELETE CASCADE,
-    following_id    UUID            NOT NULL REFERENCES users_schema.users(id) ON DELETE CASCADE,
-    created_at      TIMESTAMPTZ     DEFAULT NOW(),
-    PRIMARY KEY (follower_id, following_id),
-    CONSTRAINT no_self_follow CHECK (follower_id != following_id)
-);
-
 CREATE TABLE social_schema.recipe_saves (
     id              UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id         UUID            NOT NULL REFERENCES users_schema.users(id) ON DELETE CASCADE,

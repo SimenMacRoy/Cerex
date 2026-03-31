@@ -19,7 +19,7 @@ export default function OrderHistoryPage() {
         <div className="flex justify-center py-16"><LoadingSpinner size="lg" /></div>
       ) : (
         <div className="space-y-4">
-          {data?.data?.map((order) => (
+          {data?.data?.content?.map((order) => (
             <Link key={order.id} to={`/orders/${order.id}/tracking`} className="card p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -32,7 +32,7 @@ export default function OrderHistoryPage() {
               <span className="font-bold text-lg">{formatCurrency(order.total)}</span>
             </Link>
           ))}
-          {!data?.data?.length && (
+          {!data?.data?.content?.length && (
             <div className="text-center py-16 text-gray-500">
               <p className="text-lg">No orders yet</p>
               <p className="text-sm mt-2">{t('common.noResults')}</p>

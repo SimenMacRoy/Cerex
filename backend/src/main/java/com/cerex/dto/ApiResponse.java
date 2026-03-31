@@ -84,6 +84,21 @@ public class ApiResponse<T> {
             .build();
     }
 
+    /** Alias for {@link #ok(Object)} — preferred by controller layer. */
+    public static <T> ApiResponse<T> success(T data) {
+        return ok(data);
+    }
+
+    /** Alias for {@link #ok(Object, String)} — preferred by controller layer. */
+    public static <T> ApiResponse<T> success(T data, String message) {
+        return ok(data, message);
+    }
+
+    /** Alias for {@link #ok(Object, PaginationInfo)} — preferred by controller layer. */
+    public static <T> ApiResponse<T> success(T data, PaginationInfo pagination) {
+        return ok(data, pagination);
+    }
+
     /**
      * Pagination metadata for list endpoints.
      */

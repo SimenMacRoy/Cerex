@@ -75,9 +75,8 @@ public class RecipeService {
     /**
      * List published recipes with pagination.
      */
-    @Cacheable(value = "recipes", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<RecipeCardDTO> listPublishedRecipes(Pageable pageable) {
-        Page<Recipe> recipePage = recipeRepository.findAll(pageable);
+        Page<Recipe> recipePage = recipeRepository.findByStatus(Recipe.RecipeStatus.PUBLISHED, pageable);
         return recipePage.map(this::buildCardDTO);
     }
 
@@ -95,6 +94,13 @@ public class RecipeService {
     public Page<RecipeCardDTO> getMyRecipes(UUID authorId, Pageable pageable) {
         Page<Recipe> recipePage = recipeRepository.findAllByAuthor(authorId, pageable);
         return recipePage.map(this::buildCardDTO);
+    }
+
+    /**
+     * Get trending recipes ordered by engagement score.
+     */
+    public Page<RecipeCardDTO> getTrendingRecipes(Pageable pageable) {
+        return recipeRepository.findTrendingRecipes(pageable).map(this::buildCardDTO);
     }
 
     /**

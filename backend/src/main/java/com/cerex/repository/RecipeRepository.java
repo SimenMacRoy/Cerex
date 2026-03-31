@@ -69,6 +69,11 @@ public interface RecipeRepository extends JpaRepository<Recipe, UUID>,
     boolean existsByIdAndAuthorId(UUID id, UUID authorId);
 
     /**
+     * List all recipes with a given status, newest first.
+     */
+    Page<Recipe> findByStatus(RecipeStatus status, Pageable pageable);
+
+    /**
      * Count recipes published by a specific author.
      */
     long countByAuthorIdAndStatus(UUID authorId, RecipeStatus status);
@@ -300,6 +305,33 @@ public interface RecipeRepository extends JpaRepository<Recipe, UUID>,
         Pageable pageable
     );
 
+    /**
+     * Find trending recipes globally, ranked by a weighted engagement score.
+     * Used by the recommendation engine and daily discovery feed.
+     */
+    @Query("""
+        SELECT r FROM Recipe r
+        WHERE r.status = 'PUBLISHED'
+        ORDER BY (r.avgRating * 0.4 + r.viewCount * 0.3 + r.likeCount * 0.3) DESC
+        """)
+    Page<Recipe> findTrendingRecipes(Pageable pageable);
+
+    /**
+     * Find published recipes by continent ID.
+     * Used by the content-based similarity engine.
+     */
+    @Query("""
+        SELECT r FROM Recipe r
+        WHERE r.continentId = :continentId
+          AND r.status = :status
+        ORDER BY r.avgRating DESC
+        """)
+    Page<Recipe> findByContinentAndStatus(
+        @Param("continentId") UUID continentId,
+        @Param("status") RecipeStatus status,
+        Pageable pageable
+    );
+
     // ─────────────────────────────────────────────────────────────
     // Recommendation Support
     // ─────────────────────────────────────────────────────────────
@@ -314,7 +346,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, UUID>,
     @Query(value = """
         SELECT r.*
         FROM recipes_schema.recipes r
-        JOIN social_schema.follows f ON f.following_id = r.author_id
+        JOIN social_schema.follows f ON f.followee_id = r.author_id
         WHERE f.follower_id = :userId
           AND r.status = 'PUBLISHED'
           AND r.deleted_at IS NULL

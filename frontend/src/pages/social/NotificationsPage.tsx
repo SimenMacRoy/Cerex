@@ -39,7 +39,7 @@ export default function NotificationsPage() {
         <div className="flex justify-center py-16"><LoadingSpinner size="lg" /></div>
       ) : (
         <div className="space-y-2">
-          {data?.data?.map((notif) => (
+          {data?.data?.content?.map((notif) => (
             <div
               key={notif.id}
               onClick={() => !notif.isRead && markRead.mutate(notif.id)}
@@ -62,7 +62,7 @@ export default function NotificationsPage() {
               {!notif.isRead && <div className="w-2 h-2 rounded-full bg-primary-500 shrink-0 mt-2" />}
             </div>
           ))}
-          {!data?.data?.length && (
+          {!data?.data?.content?.length && (
             <div className="text-center py-16 text-gray-500">
               <FiBell className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
               <p>{t('social.noNotifications')}</p>

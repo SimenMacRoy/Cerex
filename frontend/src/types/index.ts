@@ -67,35 +67,77 @@ export type RecipeType = 'APPETIZER' | 'MAIN_COURSE' | 'DESSERT' | 'SOUP' | 'SAL
 export interface RecipeCard {
   id: string;
   title: string;
+  slug: string;
   description: string;
-  imageUrl: string;
+  coverImageUrl?: string;
+  authorId?: string;
   authorName: string;
   authorAvatarUrl?: string;
-  difficulty: DifficultyLevel;
+  cuisineType?: string;
+  courseType?: string;
+  difficultyLevel: DifficultyLevel;
+  spiceLevel?: number;
   prepTimeMinutes: number;
   cookTimeMinutes: number;
+  totalTimeMinutes?: number;
   servings: number;
-  rating: number;
-  ratingsCount: number;
-  likesCount: number;
-  commentsCount: number;
-  isLiked: boolean;
-  isSaved: boolean;
-  ecoScore?: number;
-  tags: string[];
-  createdAt: string;
+  avgRating: number;
+  ratingCount: number;
+  likeCount: number;
+  commentCount?: number;
+  viewCount?: number;
+  isVegan?: boolean;
+  isVegetarian?: boolean;
+  isGlutenFree?: boolean;
+  isHalal?: boolean;
+  isPremium?: boolean;
+  isFeatured?: boolean;
+  publishedAt?: string;
+  // UI state (not from API)
+  isLiked?: boolean;
+  isSaved?: boolean;
 }
 
-export interface RecipeDetail extends RecipeCard {
+export interface RecipeDetail {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  author?: { id: string; displayName: string; avatarUrl?: string };
+  recipeType?: string;
+  cuisineType?: string;
+  courseType?: string;
+  difficultyLevel: DifficultyLevel;
+  spiceLevel?: number;
+  prepTimeMinutes: number;
+  cookTimeMinutes: number;
+  restTimeMinutes?: number;
+  totalTimeMinutes?: number;
+  servings: number;
+  servingsUnit?: string;
+  nutrition?: NutritionalInfo;
+  isVegetarian?: boolean;
+  isVegan?: boolean;
+  isGlutenFree?: boolean;
+  isDairyFree?: boolean;
+  isHalal?: boolean;
+  isKosher?: boolean;
+  isNutFree?: boolean;
+  isLowCarb?: boolean;
+  ingredients?: RecipeIngredient[];
+  steps?: RecipeStep[];
+  viewCount?: number;
+  likeCount: number;
+  saveCount?: number;
+  avgRating: number;
+  ratingCount: number;
+  commentCount?: number;
+  isPremium?: boolean;
+  isFeatured?: boolean;
   status: RecipeStatus;
-  recipeType: RecipeType;
-  cuisineOrigin: string;
-  ingredients: RecipeIngredient[];
-  steps: RecipeStep[];
-  nutritionalInfo: NutritionalInfo;
-  dietaryFlags: DietaryFlags;
-  videoUrl?: string;
-  authorId: string;
+  publishedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface RecipeIngredient {
@@ -399,16 +441,25 @@ export interface ApiResponse<T> {
   timestamp: string;
 }
 
+export interface SpringPage<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
 export interface PaginatedResponse<T> {
   success: boolean;
-  data: T[];
-  pagination: {
+  data: SpringPage<T>;
+  pagination?: {
     page: number;
     size: number;
     totalElements: number;
     totalPages: number;
-    first: boolean;
-    last: boolean;
   };
   timestamp: string;
 }

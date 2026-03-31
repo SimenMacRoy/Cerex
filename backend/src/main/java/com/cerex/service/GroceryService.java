@@ -48,7 +48,6 @@ public class GroceryService {
         return toDTO(grocery);
     }
 
-    @Cacheable(value = "groceries", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<GroceryDTO> listActiveGroceries(Pageable pageable) {
         return groceryRepository.findActiveGroceries(pageable).map(this::toDTO);
     }

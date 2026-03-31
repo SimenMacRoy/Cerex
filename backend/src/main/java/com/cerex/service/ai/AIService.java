@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestClient;
 
 import java.util.List;
 import java.util.Map;
@@ -40,17 +40,17 @@ public class AIService {
     @Value("${cerex.ai.base-url:https://api.openai.com/v1}")
     private String baseUrl;
 
-    private WebClient webClient;
+    private RestClient restClient;
 
-    private WebClient getWebClient() {
-        if (webClient == null) {
-            webClient = WebClient.builder()
+    private RestClient getRestClient() {
+        if (restClient == null) {
+            restClient = RestClient.builder()
                 .baseUrl(baseUrl)
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + openAiApiKey)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
         }
-        return webClient;
+        return restClient;
     }
 
     // ─────────────────────────────────────────────────────────
@@ -234,13 +234,12 @@ public class AIService {
                 "temperature", 0.7
             );
 
-            String response = getWebClient()
+            String response = getRestClient()
                 .post()
                 .uri("/chat/completions")
-                .bodyValue(requestBody)
+                .body(requestBody)
                 .retrieve()
-                .bodyToMono(String.class)
-                .block();
+                .body(String.class);
 
             log.info("GPT response received. Prompt length: {} chars", prompt.length());
             return response;

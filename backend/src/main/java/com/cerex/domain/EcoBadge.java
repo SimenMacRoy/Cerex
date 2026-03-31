@@ -69,4 +69,8 @@ public class EcoBadge {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
+
+    public enum BadgeCategory {
+        ECO, CULTURAL, SOCIAL, MILESTONE
+    }
 }

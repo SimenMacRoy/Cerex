@@ -112,7 +112,7 @@ export default function RestaurantDetailPage() {
       {/* Reviews */}
       <h2 className="text-xl font-display font-bold mt-12 mb-6">{t('restaurant.reviews')}</h2>
       <div className="space-y-4">
-        {reviews?.data?.map((review) => (
+        {reviews?.data?.content?.map((review) => (
           <div key={review.id} className="card p-4">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-sm font-bold text-primary-600">

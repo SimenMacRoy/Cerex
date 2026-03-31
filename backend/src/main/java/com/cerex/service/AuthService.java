@@ -48,11 +48,6 @@ public class AuthService {
             throw new DuplicateResourceException("User", "email", request.getEmail());
         }
 
-        if (!request.isGdprConsent()) {
-            throw new BusinessException("GDPR_CONSENT_REQUIRED",
-                "GDPR consent is required to create an account");
-        }
-
         // Create user entity
         User user = User.builder()
             .email(request.getEmail().toLowerCase().trim())
@@ -70,7 +65,9 @@ public class AuthService {
         // Create profile
         UserProfile profile = UserProfile.builder()
             .user(user)
-            .displayName(request.getDisplayName())
+            .displayName(request.getResolvedDisplayName())
+            .firstName(request.getFirstName())
+            .lastName(request.getLastName())
             .preferredLanguage(request.getPreferredLanguage() != null ? request.getPreferredLanguage() : "en")
             .preferredCurrency(request.getPreferredCurrency() != null ? request.getPreferredCurrency() : "EUR")
             .build();
@@ -99,10 +96,17 @@ public class AuthService {
             .user(AuthResponse.UserInfo.builder()
                 .id(user.getId())
                 .email(user.getEmail())
-                .displayName(profile.getDisplayName())
+                .firstName(profile.getFirstName())
+                .lastName(profile.getLastName())
                 .role(user.getRole().name())
+                .status(user.getStatus().name())
+                .preferredLanguage(profile.getPreferredLanguage())
+                .followersCount(0)
+                .followingCount(0)
+                .recipesCount(0)
                 .subscriptionPlan("FREE")
                 .createdAt(user.getCreatedAt())
+
                 .build())
             .build();
     }
@@ -142,9 +146,15 @@ public class AuthService {
             .user(AuthResponse.UserInfo.builder()
                 .id(user.getId())
                 .email(user.getEmail())
-                .displayName(profile != null ? profile.getDisplayName() : user.getEmail())
+                .firstName(profile != null ? profile.getFirstName() : null)
+                .lastName(profile != null ? profile.getLastName() : null)
                 .avatarUrl(profile != null ? profile.getAvatarUrl() : null)
                 .role(user.getRole().name())
+                .status(user.getStatus().name())
+                .preferredLanguage(profile != null ? profile.getPreferredLanguage() : "en")
+                .followersCount(profile != null ? profile.getFollowerCount() : 0)
+                .followingCount(profile != null ? profile.getFollowingCount() : 0)
+                .recipesCount(profile != null ? profile.getRecipeCount() : 0)
                 .subscriptionPlan(user.getSubscriptionPlan())
                 .createdAt(user.getCreatedAt())
                 .build())
@@ -177,8 +187,15 @@ public class AuthService {
             .user(AuthResponse.UserInfo.builder()
                 .id(user.getId())
                 .email(user.getEmail())
-                .displayName(profile != null ? profile.getDisplayName() : user.getEmail())
+                .firstName(profile != null ? profile.getFirstName() : null)
+                .lastName(profile != null ? profile.getLastName() : null)
+                .avatarUrl(profile != null ? profile.getAvatarUrl() : null)
                 .role(user.getRole().name())
+                .status(user.getStatus().name())
+                .preferredLanguage(profile != null ? profile.getPreferredLanguage() : "en")
+                .followersCount(profile != null && profile.getFollowerCount() != null ? profile.getFollowerCount() : 0)
+                .followingCount(profile != null && profile.getFollowingCount() != null ? profile.getFollowingCount() : 0)
+                .recipesCount(profile != null && profile.getRecipeCount() != null ? profile.getRecipeCount() : 0)
                 .subscriptionPlan(user.getSubscriptionPlan())
                 .build())
             .build();

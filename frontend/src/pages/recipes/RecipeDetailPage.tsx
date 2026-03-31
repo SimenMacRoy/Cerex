@@ -5,7 +5,6 @@ import { FiClock, FiUsers, FiHeart, FiShare2, FiBookmark, FiShoppingCart } from 
 import { recipeApi } from '@/lib/api';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import StarRating from '@/components/ui/StarRating';
-import EcoScoreBadge from '@/components/ui/EcoScoreBadge';
 import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
 import { formatDuration, getDifficultyColor, cn } from '@/lib/utils';
@@ -29,13 +28,10 @@ export default function RecipeDetailPage() {
     <div className="page-container max-w-4xl">
       {/* Hero image */}
       <div className="relative h-64 md:h-96 rounded-2xl overflow-hidden mb-8 bg-gray-200 dark:bg-gray-700">
-        {recipe.imageUrl && (
-          <img src={recipe.imageUrl} alt={recipe.title} className="w-full h-full object-cover" />
-        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
         <div className="absolute bottom-6 left-6 right-6">
-          <span className={cn('badge mb-2', getDifficultyColor(recipe.difficulty))}>
-            {t(`recipe.${recipe.difficulty.toLowerCase()}`)}
+          <span className={cn('badge mb-2', getDifficultyColor(recipe.difficultyLevel))}>
+            {t(`recipe.${recipe.difficultyLevel?.toLowerCase() ?? 'medium'}`, { defaultValue: recipe.difficultyLevel })}
           </span>
           <h1 className="text-3xl md:text-4xl font-display font-bold text-white">{recipe.title}</h1>
         </div>
@@ -44,11 +40,11 @@ export default function RecipeDetailPage() {
       {/* Meta row */}
       <div className="flex flex-wrap items-center gap-4 mb-8">
         <div className="flex items-center gap-2">
-          <Avatar src={recipe.authorAvatarUrl} name={recipe.authorName} size="sm" />
-          <span className="text-sm font-medium">{recipe.authorName}</span>
+          <Avatar src={recipe.author?.avatarUrl} name={recipe.author?.displayName ?? ''} size="sm" />
+          <span className="text-sm font-medium">{recipe.author?.displayName}</span>
         </div>
-        <StarRating rating={recipe.rating} />
-        <span className="text-sm text-gray-500">({recipe.ratingsCount} {t('recipe.reviews')})</span>
+        <StarRating rating={recipe.avgRating} />
+        <span className="text-sm text-gray-500">({recipe.ratingCount} {t('recipe.reviews')})</span>
         <div className="flex items-center gap-1 text-sm text-gray-500">
           <FiClock className="w-4 h-4" />
           {formatDuration(recipe.prepTimeMinutes + recipe.cookTimeMinutes)}
@@ -57,13 +53,12 @@ export default function RecipeDetailPage() {
           <FiUsers className="w-4 h-4" />
           {recipe.servings} {t('recipe.servings')}
         </div>
-        {recipe.ecoScore && <EcoScoreBadge score={recipe.ecoScore} grade={recipe.ecoScore >= 80 ? 'A' : recipe.ecoScore >= 60 ? 'B' : 'C'} size="sm" />}
       </div>
 
       {/* Action buttons */}
       <div className="flex flex-wrap gap-3 mb-8">
         <Button variant="primary" leftIcon={<FiHeart className="w-4 h-4" />}>
-          {t('recipe.like')} ({recipe.likesCount})
+          {t('recipe.like')} ({recipe.likeCount ?? 0})
         </Button>
         <Button variant="outline" leftIcon={<FiBookmark className="w-4 h-4" />}>
           {t('recipe.save')}
@@ -118,11 +113,11 @@ export default function RecipeDetailPage() {
       </div>
 
       {/* Nutritional Info */}
-      {recipe.nutritionalInfo && (
+      {recipe.nutrition && (
         <div className="mt-8">
           <h2 className="text-xl font-display font-bold mb-4">{t('recipe.nutrition')}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-            {Object.entries(recipe.nutritionalInfo).map(([key, value]) => (
+            {Object.entries(recipe.nutrition).map(([key, value]) => (
               <div key={key} className="card p-3 text-center">
                 <div className="text-lg font-bold text-primary-500">{value as number}</div>
                 <div className="text-xs text-gray-500 capitalize">{key}</div>

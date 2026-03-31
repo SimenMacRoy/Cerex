@@ -17,7 +17,7 @@ RUN mvn dependency:go-offline -B
 COPY src src
 
 # Build without tests (tests run in CI)
-RUN mvn package -DskipTests -B
+RUN mvn package -Dmaven.test.skip=true -B
 
 # ─────────────────────────────────────────────────────────
 # Stage 2: Runtime

@@ -57,6 +57,14 @@ public class UserProfile {
     @Column(name = "display_name", nullable = false, length = 100)
     private String displayName;
 
+    @Size(max = 100)
+    @Column(name = "first_name", length = 100)
+    private String firstName;
+
+    @Size(max = 100)
+    @Column(name = "last_name", length = 100)
+    private String lastName;
+
     @Size(max = 1000)
     @Column(name = "bio", length = 1000)
     private String bio;
@@ -142,6 +150,16 @@ public class UserProfile {
 
     @Column(name = "verified_at")
     private Instant verifiedAt;
+
+    /**
+     * Returns whether this user is a verified chef.
+     * Delegates to {@code isVerifiedChef} which is the persisted column name.
+     *
+     * @return {@code true} if the user has been verified as a chef
+     */
+    public Boolean getIsChefVerified() {
+        return isVerifiedChef;
+    }
 
     // ── Timestamps ──────────────────────────────────────────
     @CreationTimestamp

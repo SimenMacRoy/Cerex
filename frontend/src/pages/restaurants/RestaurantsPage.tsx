@@ -48,7 +48,7 @@ export default function RestaurantsPage() {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {data?.data?.map((restaurant) => (
+            {data?.data?.content?.map((restaurant) => (
               <Link key={restaurant.id} to={`/restaurants/${restaurant.id}`} className="card group">
                 <div className="h-44 bg-gray-200 dark:bg-gray-700 overflow-hidden">
                   {restaurant.imageUrl ? (
@@ -74,15 +74,15 @@ export default function RestaurantsPage() {
             ))}
           </div>
 
-          {!data?.data?.length && (
+          {!data?.data?.content?.length && (
             <div className="text-center py-16 text-gray-500">{t('common.noResults')}</div>
           )}
 
-          {data?.pagination && data.pagination.totalPages > 1 && (
+          {data?.data && data.data.totalPages > 1 && (
             <div className="flex items-center justify-center gap-2 mt-8">
               <Button variant="ghost" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>{t('common.previous')}</Button>
-              <span className="text-sm text-gray-500">{page + 1} / {data.pagination.totalPages}</span>
-              <Button variant="ghost" disabled={data.pagination.last} onClick={() => setPage((p) => p + 1)}>{t('common.next')}</Button>
+              <span className="text-sm text-gray-500">{page + 1} / {data.data.totalPages}</span>
+              <Button variant="ghost" disabled={data.data.last} onClick={() => setPage((p) => p + 1)}>{t('common.next')}</Button>
             </div>
           )}
         </>

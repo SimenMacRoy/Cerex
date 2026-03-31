@@ -77,7 +77,7 @@ export default function FeedPage() {
         <div className="flex justify-center py-12"><LoadingSpinner size="lg" /></div>
       ) : (
         <div className="space-y-4">
-          {data?.data?.map((post) => (
+          {data?.data?.content?.map((post) => (
             <div key={post.id} className="card p-4">
               {/* Post header */}
               <div className="flex items-center gap-3 mb-3">
@@ -117,7 +117,7 @@ export default function FeedPage() {
               </div>
             </div>
           ))}
-          {!data?.data?.length && (
+          {!data?.data?.content?.length && (
             <div className="text-center py-16 text-gray-500">
               <p className="text-lg">{t('common.noResults')}</p>
               <p className="text-sm mt-2">Follow users to see their posts here!</p>

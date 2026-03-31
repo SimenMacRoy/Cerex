@@ -48,6 +48,23 @@ public class RecipeController {
         return ResponseEntity.ok(ApiResponse.ok(recipes));
     }
 
+    @GetMapping("/trending")
+    @Operation(summary = "Get trending recipes by engagement score")
+    public ResponseEntity<ApiResponse<Page<RecipeCardDTO>>> getTrendingRecipes(
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok(recipeService.getTrendingRecipes(pageable)));
+    }
+
+    @GetMapping("/user/{authorId}")
+    @Operation(summary = "Get published recipes by author ID (alias for /by-author)")
+    public ResponseEntity<ApiResponse<Page<RecipeCardDTO>>> getRecipesByAuthorAlias(
+            @PathVariable UUID authorId,
+            @PageableDefault(size = 12, sort = "publishedAt", direction = Sort.Direction.DESC)
+            Pageable pageable) {
+        Page<RecipeCardDTO> recipes = recipeService.getRecipesByAuthor(authorId, pageable);
+        return ResponseEntity.ok(ApiResponse.ok(recipes));
+    }
+
     @GetMapping("/{idOrSlug}")
     @Operation(summary = "Get full recipe detail by ID or slug")
     public ResponseEntity<ApiResponse<RecipeDetailDTO>> getRecipe(

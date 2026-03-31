@@ -126,7 +126,6 @@ public class RestaurantService {
         return toDTO(restaurant);
     }
 
-    @Cacheable(value = "restaurants", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<RestaurantDTO> listActiveRestaurants(Pageable pageable) {
         return restaurantRepository.findActiveRestaurants(pageable).map(this::toDTO);
     }

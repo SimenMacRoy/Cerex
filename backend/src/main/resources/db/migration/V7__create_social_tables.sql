@@ -6,7 +6,7 @@
 -- ─────────────────────────────────────────────────────────
 -- Posts
 -- ─────────────────────────────────────────────────────────
-CREATE TABLE social_schema.posts (
+CREATE TABLE IF NOT EXISTS social_schema.posts (
     id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
     author_id           UUID            NOT NULL REFERENCES users_schema.users(id),
     post_type           VARCHAR(30)     NOT NULL DEFAULT 'GENERAL',
@@ -38,31 +38,31 @@ CREATE TABLE social_schema.posts (
     deleted_at          TIMESTAMPTZ
 );
 
-CREATE INDEX idx_posts_author_id   ON social_schema.posts(author_id);
-CREATE INDEX idx_posts_post_type   ON social_schema.posts(post_type);
-CREATE INDEX idx_posts_recipe_id   ON social_schema.posts(recipe_id);
-CREATE INDEX idx_posts_created_at  ON social_schema.posts(created_at);
-CREATE INDEX idx_posts_boost_score ON social_schema.posts(boost_score DESC);
-CREATE INDEX idx_posts_status      ON social_schema.posts(status);
+CREATE INDEX IF NOT EXISTS idx_posts_author_id   ON social_schema.posts(author_id);
+CREATE INDEX IF NOT EXISTS idx_posts_post_type   ON social_schema.posts(post_type);
+CREATE INDEX IF NOT EXISTS idx_posts_recipe_id   ON social_schema.posts(recipe_id);
+CREATE INDEX IF NOT EXISTS idx_posts_created_at  ON social_schema.posts(created_at);
+CREATE INDEX IF NOT EXISTS idx_posts_boost_score ON social_schema.posts(boost_score DESC);
+CREATE INDEX IF NOT EXISTS idx_posts_status      ON social_schema.posts(status);
 
 -- Post media
-CREATE TABLE social_schema.post_media (
+CREATE TABLE IF NOT EXISTS social_schema.post_media (
     post_id     UUID        NOT NULL REFERENCES social_schema.posts(id) ON DELETE CASCADE,
     media_url   VARCHAR(500) NOT NULL
 );
 
 -- Post hashtags
-CREATE TABLE social_schema.post_hashtags (
+CREATE TABLE IF NOT EXISTS social_schema.post_hashtags (
     post_id     UUID        NOT NULL REFERENCES social_schema.posts(id) ON DELETE CASCADE,
     hashtag     VARCHAR(100) NOT NULL
 );
 
-CREATE INDEX idx_post_hashtags ON social_schema.post_hashtags(hashtag);
+CREATE INDEX IF NOT EXISTS idx_post_hashtags ON social_schema.post_hashtags(hashtag);
 
 -- ─────────────────────────────────────────────────────────
 -- Comments
 -- ─────────────────────────────────────────────────────────
-CREATE TABLE social_schema.comments (
+CREATE TABLE IF NOT EXISTS social_schema.comments (
     id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
     post_id             UUID            NOT NULL REFERENCES social_schema.posts(id) ON DELETE CASCADE,
     author_id           UUID            NOT NULL REFERENCES users_schema.users(id),
@@ -77,14 +77,14 @@ CREATE TABLE social_schema.comments (
     deleted_at          TIMESTAMPTZ
 );
 
-CREATE INDEX idx_comments_post_id   ON social_schema.comments(post_id);
-CREATE INDEX idx_comments_author_id ON social_schema.comments(author_id);
-CREATE INDEX idx_comments_parent_id ON social_schema.comments(parent_comment_id);
+CREATE INDEX IF NOT EXISTS idx_comments_post_id   ON social_schema.comments(post_id);
+CREATE INDEX IF NOT EXISTS idx_comments_author_id ON social_schema.comments(author_id);
+CREATE INDEX IF NOT EXISTS idx_comments_parent_id ON social_schema.comments(parent_comment_id);
 
 -- ─────────────────────────────────────────────────────────
 -- Follows
 -- ─────────────────────────────────────────────────────────
-CREATE TABLE social_schema.follows (
+CREATE TABLE IF NOT EXISTS social_schema.follows (
     id              UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
     follower_id     UUID            NOT NULL REFERENCES users_schema.users(id) ON DELETE CASCADE,
     followee_id     UUID            NOT NULL REFERENCES users_schema.users(id) ON DELETE CASCADE,
@@ -95,29 +95,29 @@ CREATE TABLE social_schema.follows (
     CHECK (follower_id != followee_id)
 );
 
-CREATE INDEX idx_follows_follower_id ON social_schema.follows(follower_id);
-CREATE INDEX idx_follows_followee_id ON social_schema.follows(followee_id);
+CREATE INDEX IF NOT EXISTS idx_follows_follower_id ON social_schema.follows(follower_id);
+CREATE INDEX IF NOT EXISTS idx_follows_followee_id ON social_schema.follows(followee_id);
 
 -- ─────────────────────────────────────────────────────────
 -- Likes (generic: post, comment, recipe, review)
 -- ─────────────────────────────────────────────────────────
-CREATE TABLE social_schema.likes (
+CREATE TABLE IF NOT EXISTS social_schema.likes (
     id              UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id         UUID            NOT NULL REFERENCES users_schema.users(id) ON DELETE CASCADE,
-    entity_type     VARCHAR(20)     NOT NULL, -- POST, COMMENT, RECIPE, RESTAURANT_REVIEW
+    entity_type     VARCHAR(20)     NOT NULL,
     entity_id       UUID            NOT NULL,
     reaction_type   VARCHAR(20)     DEFAULT 'LIKE',
     created_at      TIMESTAMPTZ     DEFAULT NOW(),
     UNIQUE (user_id, entity_type, entity_id)
 );
 
-CREATE INDEX idx_likes_user_id ON social_schema.likes(user_id);
-CREATE INDEX idx_likes_entity  ON social_schema.likes(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_likes_user_id ON social_schema.likes(user_id);
+CREATE INDEX IF NOT EXISTS idx_likes_entity  ON social_schema.likes(entity_type, entity_id);
 
 -- ─────────────────────────────────────────────────────────
 -- Shares
 -- ─────────────────────────────────────────────────────────
-CREATE TABLE social_schema.shares (
+CREATE TABLE IF NOT EXISTS social_schema.shares (
     id              UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id         UUID            NOT NULL REFERENCES users_schema.users(id) ON DELETE CASCADE,
     entity_type     VARCHAR(20)     NOT NULL,
@@ -127,14 +127,14 @@ CREATE TABLE social_schema.shares (
     created_at      TIMESTAMPTZ     DEFAULT NOW()
 );
 
-CREATE INDEX idx_shares_user_id    ON social_schema.shares(user_id);
-CREATE INDEX idx_shares_entity     ON social_schema.shares(entity_type, entity_id);
-CREATE INDEX idx_shares_created_at ON social_schema.shares(created_at);
+CREATE INDEX IF NOT EXISTS idx_shares_user_id    ON social_schema.shares(user_id);
+CREATE INDEX IF NOT EXISTS idx_shares_entity     ON social_schema.shares(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_shares_created_at ON social_schema.shares(created_at);
 
 -- ─────────────────────────────────────────────────────────
 -- Notifications
 -- ─────────────────────────────────────────────────────────
-CREATE TABLE social_schema.notifications (
+CREATE TABLE IF NOT EXISTS social_schema.notifications (
     id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
     recipient_id        UUID            NOT NULL REFERENCES users_schema.users(id) ON DELETE CASCADE,
     sender_id           UUID            REFERENCES users_schema.users(id),
@@ -150,7 +150,7 @@ CREATE TABLE social_schema.notifications (
     created_at          TIMESTAMPTZ     DEFAULT NOW()
 );
 
-CREATE INDEX idx_notif_recipient_id ON social_schema.notifications(recipient_id);
-CREATE INDEX idx_notif_is_read      ON social_schema.notifications(is_read);
-CREATE INDEX idx_notif_created_at   ON social_schema.notifications(created_at);
-CREATE INDEX idx_notif_type         ON social_schema.notifications(notification_type);
+CREATE INDEX IF NOT EXISTS idx_notif_recipient_id ON social_schema.notifications(recipient_id);
+CREATE INDEX IF NOT EXISTS idx_notif_is_read      ON social_schema.notifications(is_read);
+CREATE INDEX IF NOT EXISTS idx_notif_created_at   ON social_schema.notifications(created_at);
+CREATE INDEX IF NOT EXISTS idx_notif_type         ON social_schema.notifications(notification_type);

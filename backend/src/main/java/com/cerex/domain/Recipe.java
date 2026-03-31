@@ -527,6 +527,16 @@ public class Recipe {
     // ─────────────────────────────────────────────────────────────
 
     /**
+     * Returns the average rating for this recipe.
+     * Delegates to {@code avgRating} which is the persisted column name.
+     *
+     * @return the average rating (0.00–5.00), or {@code null} if not yet rated
+     */
+    public java.math.BigDecimal getAverageRating() {
+        return avgRating;
+    }
+
+    /**
      * Calculates total time from prep + cook + rest times.
      * @return total preparation and cooking time in minutes
      */
