@@ -103,7 +103,10 @@ export interface RecipeDetail {
   title: string;
   slug: string;
   description: string;
-  author?: { id: string; displayName: string; avatarUrl?: string };
+  story?: string;
+  coverImageUrl?: string;
+  videoUrl?: string;
+  author?: { id: string; displayName: string; avatarUrl?: string; isVerifiedChef?: boolean };
   recipeType?: string;
   cuisineType?: string;
   courseType?: string;
@@ -145,17 +148,18 @@ export interface RecipeIngredient {
   name: string;
   quantity: number;
   unit: string;
+  displayText?: string;
   isOptional: boolean;
+  groupName?: string;
   substituteFor?: string;
 }
 
 export interface RecipeStep {
   stepNumber: number;
-  title: string;
-  description: string;
-  imageUrl?: string;
+  instruction: string;
   durationMinutes?: number;
-  tips?: string;
+  imageUrl?: string;
+  tip?: string;
 }
 
 export interface NutritionalInfo {

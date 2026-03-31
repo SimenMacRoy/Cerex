@@ -17,7 +17,7 @@ export default function CreateRecipePage() {
   const { register, handleSubmit, control, formState: { errors } } = useForm<CreateRecipeRequest>({
     defaultValues: {
       ingredients: [{ name: '', quantity: 1, unit: 'g', isOptional: false }],
-      steps: [{ title: '', description: '' }],
+      steps: [{ instruction: '', tip: '' }],
       dietaryFlags: { vegetarian: false, vegan: false, glutenFree: false, dairyFree: false, nutFree: false, halal: false, kosher: false },
       tags: [],
     },
@@ -93,7 +93,7 @@ export default function CreateRecipePage() {
         <div className="card p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">{t('recipe.steps')}</h2>
-            <Button type="button" variant="ghost" size="sm" leftIcon={<FiPlus />} onClick={() => addStep({ title: '', description: '' })}>
+            <Button type="button" variant="ghost" size="sm" leftIcon={<FiPlus />} onClick={() => addStep({ instruction: '', tip: '' })}>
               Add Step
             </Button>
           </div>
@@ -104,8 +104,8 @@ export default function CreateRecipePage() {
                   {index + 1}
                 </div>
                 <div className="flex-1 space-y-2">
-                  <Input placeholder="Step title" {...register(`steps.${index}.title`)} />
-                  <textarea className="input-field min-h-[60px] resize-y text-sm" placeholder="Step description..." {...register(`steps.${index}.description`)} />
+                  <textarea className="input-field min-h-[80px] resize-y text-sm" placeholder="Describe this step..." {...register(`steps.${index}.instruction`)} />
+                  <Input placeholder="💡 Tip (optional)" {...register(`steps.${index}.tip`)} />
                 </div>
                 <button type="button" onClick={() => removeStep(index)} className="p-2 text-red-400 hover:text-red-600 mt-1">
                   <FiTrash2 className="w-4 h-4" />

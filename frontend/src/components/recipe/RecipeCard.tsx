@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FiClock, FiHeart, FiUser } from 'react-icons/fi';
 import type { RecipeCard as RecipeCardType } from '@/types';
-import { cn, formatDuration, getDifficultyColor, truncate } from '@/lib/utils';
+import { cn, formatDuration, getDifficultyColor, truncate, getCuisineFlag } from '@/lib/utils';
 import StarRating from '@/components/ui/StarRating';
 
 interface RecipeCardProps {
@@ -57,7 +57,9 @@ export default function RecipeCard({ recipe, className }: RecipeCardProps) {
           </div>
           <span className="text-xs text-gray-500 dark:text-gray-400">{recipe.authorName}</span>
           {recipe.cuisineType && (
-            <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto">{recipe.cuisineType}</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto" title={recipe.cuisineType}>
+              {getCuisineFlag(recipe.cuisineType)} {recipe.cuisineType}
+            </span>
           )}
         </div>
 

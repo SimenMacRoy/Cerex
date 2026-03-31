@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { useState } from 'react';
 import { FiClock, FiUsers, FiHeart, FiShare2, FiBookmark, FiShoppingCart } from 'react-icons/fi';
 import { recipeApi } from '@/lib/api';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -8,16 +9,59 @@ import StarRating from '@/components/ui/StarRating';
 import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
 import { formatDuration, getDifficultyColor, cn } from '@/lib/utils';
+import toast from 'react-hot-toast';
 
 export default function RecipeDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
 
+  const [liked, setLiked] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+
   const { data, isLoading } = useQuery({
     queryKey: ['recipe', id],
-    queryFn: () => recipeApi.getById(id!).then((r) => r.data.data),
+    queryFn: () => recipeApi.getById(id!).then((r) => {
+      const recipe = r.data.data;
+      setLikeCount(recipe.likeCount ?? 0);
+      return recipe;
+    }),
     enabled: !!id,
   });
+
+  const likeMutation = useMutation({
+    mutationFn: () => recipeApi.like(id!),
+    onMutate: () => {
+      setLiked((prev) => !prev);
+      setLikeCount((prev) => liked ? prev - 1 : prev + 1);
+    },
+    onError: () => {
+      setLiked((prev) => !prev);
+      setLikeCount((prev) => liked ? prev + 1 : prev - 1);
+      toast.error(t('common.error'));
+    },
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: () => recipeApi.save(id!),
+    onMutate: () => {
+      setSaved((prev) => !prev);
+      toast.success(saved ? t('recipe.unsaved') : t('recipe.saved'));
+    },
+    onError: () => {
+      setSaved((prev) => !prev);
+      toast.error(t('common.error'));
+    },
+  });
+
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success(t('recipe.linkCopied') || 'Link copied!');
+    } catch {
+      toast.error(t('common.error'));
+    }
+  };
 
   if (isLoading) return <div className="flex justify-center py-24"><LoadingSpinner size="lg" /></div>;
   if (!data) return <div className="page-container text-center py-16">{t('common.error')}</div>;
@@ -28,6 +72,9 @@ export default function RecipeDetailPage() {
     <div className="page-container max-w-4xl">
       {/* Hero image */}
       <div className="relative h-64 md:h-96 rounded-2xl overflow-hidden mb-8 bg-gray-200 dark:bg-gray-700">
+        {recipe.coverImageUrl && (
+          <img src={recipe.coverImageUrl} alt={recipe.title} className="w-full h-full object-cover" />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
         <div className="absolute bottom-6 left-6 right-6">
           <span className={cn('badge mb-2', getDifficultyColor(recipe.difficultyLevel))}>
@@ -57,13 +104,21 @@ export default function RecipeDetailPage() {
 
       {/* Action buttons */}
       <div className="flex flex-wrap gap-3 mb-8">
-        <Button variant="primary" leftIcon={<FiHeart className="w-4 h-4" />}>
-          {t('recipe.like')} ({recipe.likeCount ?? 0})
+        <Button
+          variant={liked ? 'primary' : 'outline'}
+          leftIcon={<FiHeart className={cn('w-4 h-4', liked && 'fill-current')} />}
+          onClick={() => likeMutation.mutate()}
+        >
+          {t('recipe.like')} ({likeCount})
         </Button>
-        <Button variant="outline" leftIcon={<FiBookmark className="w-4 h-4" />}>
-          {t('recipe.save')}
+        <Button
+          variant={saved ? 'primary' : 'outline'}
+          leftIcon={<FiBookmark className={cn('w-4 h-4', saved && 'fill-current')} />}
+          onClick={() => saveMutation.mutate()}
+        >
+          {saved ? t('recipe.saved') || 'Saved' : t('recipe.save')}
         </Button>
-        <Button variant="outline" leftIcon={<FiShare2 className="w-4 h-4" />}>
+        <Button variant="outline" leftIcon={<FiShare2 className="w-4 h-4" />} onClick={handleShare}>
           {t('recipe.share')}
         </Button>
         <Button variant="secondary" leftIcon={<FiShoppingCart className="w-4 h-4" />}>
@@ -80,9 +135,13 @@ export default function RecipeDetailPage() {
           <h2 className="text-xl font-display font-bold mb-4">{t('recipe.ingredients')}</h2>
           <div className="card p-4 space-y-3">
             {recipe.ingredients?.map((ing) => (
-              <div key={ing.id} className="flex items-center justify-between py-1 border-b border-gray-100 dark:border-gray-700 last:border-0">
-                <span className={cn('text-sm', ing.isOptional && 'italic text-gray-400')}>{ing.name}</span>
-                <span className="text-sm font-medium text-gray-500">{ing.quantity} {ing.unit}</span>
+              <div key={ing.id} className="flex items-start justify-between py-1 border-b border-gray-100 dark:border-gray-700 last:border-0">
+                <span className={cn('text-sm flex-1', ing.isOptional && 'italic text-gray-400')}>
+                  {ing.displayText || ing.name}
+                </span>
+                <span className="text-sm font-medium text-gray-500 ml-2 whitespace-nowrap">
+                  {ing.quantity} {ing.unit}
+                </span>
               </div>
             ))}
           </div>
@@ -98,11 +157,15 @@ export default function RecipeDetailPage() {
                   <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold text-sm shrink-0">
                     {step.stepNumber}
                   </div>
-                  <div>
-                    <h3 className="font-semibold mb-1">{step.title}</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{step.description}</p>
-                    {step.tips && (
-                      <p className="text-sm text-primary-500 mt-2 italic">💡 {step.tips}</p>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{step.instruction}</p>
+                    {step.durationMinutes && (
+                      <span className="inline-flex items-center gap-1 text-xs text-gray-400 mt-2">
+                        <FiClock className="w-3 h-3" /> {formatDuration(step.durationMinutes)}
+                      </span>
+                    )}
+                    {step.tip && (
+                      <p className="text-sm text-primary-500 mt-2 italic">💡 {step.tip}</p>
                     )}
                   </div>
                 </div>

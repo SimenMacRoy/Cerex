@@ -1,0 +1,1 @@
+import{j as s,v as n}from"./index-BlPC2Snd.js";function i({size:r="md",className:e}){const o={sm:"w-5 h-5 border-2",md:"w-8 h-8 border-3",lg:"w-12 h-12 border-4"};return s.jsx("div",{className:n("rounded-full border-primary-200 border-t-primary-500 animate-spin",o[r],e)})}export{i as L};

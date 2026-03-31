@@ -153,3 +153,21 @@ export function getStarRating(rating: number): { full: number; half: boolean; em
   const empty = 5 - full - (half ? 1 : 0);
   return { full, half, empty };
 }
+
+/**
+ * Map cuisine type to a country flag emoji.
+ */
+const CUISINE_FLAG_MAP: Record<string, string> = {
+  FRENCH: '🇫🇷', ITALIAN: '🇮🇹', JAPANESE: '🇯🇵', CHINESE: '🇨🇳',
+  INDIAN: '🇮🇳', MEXICAN: '🇲🇽', THAI: '🇹🇭', AFRICAN: '🌍',
+  KOREAN: '🇰🇷', SPANISH: '🇪🇸', GREEK: '🇬🇷', TURKISH: '🇹🇷',
+  AMERICAN: '🇺🇸', BRAZILIAN: '🇧🇷', MOROCCAN: '🇲🇦', LEBANESE: '🇱🇧',
+  VIETNAMESE: '🇻🇳', PERUVIAN: '🇵🇪', ETHIOPIAN: '🇪🇹', CARIBBEAN: '🇯🇲',
+  GERMAN: '🇩🇪', BRITISH: '🇬🇧', PORTUGUESE: '🇵🇹', RUSSIAN: '🇷🇺',
+  French: '🇫🇷', // handle case variation from seed data
+};
+
+export function getCuisineFlag(cuisineType?: string): string {
+  if (!cuisineType) return '';
+  return CUISINE_FLAG_MAP[cuisineType] || CUISINE_FLAG_MAP[cuisineType.toUpperCase()] || '🍽️';
+}

@@ -225,6 +225,29 @@ public interface RecipeRepository extends JpaRepository<Recipe, UUID>,
     );
 
     // ─────────────────────────────────────────────────────────────
+    // Cuisine & Difficulty & Search Combined
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Filter published recipes by optional cuisine type, difficulty level and keyword.
+     * Supports the main recipes listing page with combined filters.
+     */
+    @Query("""
+        SELECT r FROM Recipe r
+        WHERE r.status = 'PUBLISHED'
+          AND (:cuisineType IS NULL OR UPPER(r.cuisineType) = UPPER(:cuisineType))
+          AND (:difficultyLevel IS NULL OR r.difficultyLevel = :difficultyLevel)
+          AND (:keyword IS NULL OR LOWER(r.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+               OR LOWER(r.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
+        """)
+    Page<Recipe> findByFilters(
+        @Param("cuisineType")     String cuisineType,
+        @Param("difficultyLevel") DifficultyLevel difficultyLevel,
+        @Param("keyword")         String keyword,
+        Pageable pageable
+    );
+
+    // ─────────────────────────────────────────────────────────────
     // Trending & Popularity
     // ─────────────────────────────────────────────────────────────
 

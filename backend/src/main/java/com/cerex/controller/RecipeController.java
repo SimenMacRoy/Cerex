@@ -40,11 +40,35 @@ public class RecipeController {
     // ─────────────────────────────────────────────────────────
 
     @GetMapping
-    @Operation(summary = "List published recipes with pagination")
+    @Operation(summary = "List published recipes with optional cuisine/difficulty filters")
     public ResponseEntity<ApiResponse<Page<RecipeCardDTO>>> listRecipes(
+            @RequestParam(required = false) String cuisine,
+            @RequestParam(required = false) String difficulty,
+            @RequestParam(required = false) String q,
             @PageableDefault(size = 20, sort = "publishedAt", direction = Sort.Direction.DESC)
             Pageable pageable) {
-        Page<RecipeCardDTO> recipes = recipeService.listPublishedRecipes(pageable);
+
+        boolean hasFilters = (cuisine != null && !cuisine.isBlank())
+                          || (difficulty != null && !difficulty.isBlank())
+                          || (q != null && !q.isBlank());
+
+        Page<RecipeCardDTO> recipes;
+        if (hasFilters) {
+            recipes = recipeService.filterRecipes(cuisine, difficulty, q, pageable);
+        } else {
+            recipes = recipeService.listPublishedRecipes(pageable);
+        }
+        return ResponseEntity.ok(ApiResponse.ok(recipes));
+    }
+
+    @GetMapping("/search")
+    @Operation(summary = "Search recipes by keyword with optional filters")
+    public ResponseEntity<ApiResponse<Page<RecipeCardDTO>>> searchRecipes(
+            @RequestParam(name = "q", required = false) String query,
+            @RequestParam(required = false) String cuisine,
+            @RequestParam(required = false) String difficulty,
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<RecipeCardDTO> recipes = recipeService.filterRecipes(cuisine, difficulty, query, pageable);
         return ResponseEntity.ok(ApiResponse.ok(recipes));
     }
 

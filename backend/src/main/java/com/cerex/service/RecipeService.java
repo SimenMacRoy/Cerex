@@ -116,6 +116,41 @@ public class RecipeService {
     }
 
     /**
+     * Filter recipes by optional cuisine type, difficulty level and keyword search.
+     * Supports the frontend combined filters on the recipes listing page.
+     */
+    public Page<RecipeCardDTO> filterRecipes(
+            String cuisineType, String difficultyLevel, String keyword, Pageable pageable) {
+
+        Recipe.DifficultyLevel difficulty = null;
+        if (difficultyLevel != null && !difficultyLevel.isBlank()) {
+            try {
+                difficulty = Recipe.DifficultyLevel.valueOf(difficultyLevel.toUpperCase());
+            } catch (IllegalArgumentException ignored) {
+                // Unknown difficulty — skip filter
+            }
+        }
+
+        String cuisine = (cuisineType != null && !cuisineType.isBlank()) ? cuisineType : null;
+        String search = (keyword != null && !keyword.isBlank()) ? keyword : null;
+
+        Page<Recipe> page = recipeRepository.findByFilters(cuisine, difficulty, search, pageable);
+        return page.map(this::buildCardDTO);
+    }
+
+    /**
+     * Full-text search for recipes using PostgreSQL tsvector.
+     */
+    public Page<RecipeCardDTO> searchRecipes(String query, Pageable pageable) {
+        if (query == null || query.isBlank()) {
+            return listPublishedRecipes(pageable);
+        }
+        // Use the JPQL-based filter as a simpler fallback that returns entities
+        Page<Recipe> page = recipeRepository.findByFilters(null, null, query, pageable);
+        return page.map(this::buildCardDTO);
+    }
+
+    /**
      * Filter by difficulty and time.
      */
     public Page<RecipeCardDTO> filterByDifficultyAndTime(

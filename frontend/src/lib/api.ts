@@ -69,7 +69,7 @@ export const userApi = {
 // RECIPE API
 // ═══════════════════════════════════════════════════════════
 export const recipeApi = {
-  getAll: (params?: { page?: number; size?: number; sort?: string; cuisine?: string; difficulty?: string; diet?: string }) =>
+  getAll: (params?: { page?: number; size?: number; sort?: string; cuisine?: string; difficulty?: string; diet?: string; q?: string }) =>
     apiClient.get<PaginatedResponse<RecipeCard>>('/recipes', { params }),
 
   getById: (id: string) =>
