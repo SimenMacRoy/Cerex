@@ -93,21 +93,7 @@ public class AuthService {
             .refreshToken(refreshToken)
             .tokenType("Bearer")
             .expiresIn(3600)
-            .user(AuthResponse.UserInfo.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .firstName(profile.getFirstName())
-                .lastName(profile.getLastName())
-                .role(user.getRole().name())
-                .status(user.getStatus().name())
-                .preferredLanguage(profile.getPreferredLanguage())
-                .followersCount(0)
-                .followingCount(0)
-                .recipesCount(0)
-                .subscriptionPlan("FREE")
-                .createdAt(user.getCreatedAt())
-
-                .build())
+            .user(buildUserInfo(user, profile))
             .build();
     }
 
@@ -143,21 +129,7 @@ public class AuthService {
             .refreshToken(refreshToken)
             .tokenType("Bearer")
             .expiresIn(3600)
-            .user(AuthResponse.UserInfo.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .firstName(profile != null ? profile.getFirstName() : null)
-                .lastName(profile != null ? profile.getLastName() : null)
-                .avatarUrl(profile != null ? profile.getAvatarUrl() : null)
-                .role(user.getRole().name())
-                .status(user.getStatus().name())
-                .preferredLanguage(profile != null ? profile.getPreferredLanguage() : "en")
-                .followersCount(profile != null ? profile.getFollowerCount() : 0)
-                .followingCount(profile != null ? profile.getFollowingCount() : 0)
-                .recipesCount(profile != null ? profile.getRecipeCount() : 0)
-                .subscriptionPlan(user.getSubscriptionPlan())
-                .createdAt(user.getCreatedAt())
-                .build())
+            .user(buildUserInfo(user, profile))
             .build();
     }
 
@@ -184,20 +156,33 @@ public class AuthService {
             .refreshToken(newRefreshToken)
             .tokenType("Bearer")
             .expiresIn(3600)
-            .user(AuthResponse.UserInfo.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .firstName(profile != null ? profile.getFirstName() : null)
-                .lastName(profile != null ? profile.getLastName() : null)
-                .avatarUrl(profile != null ? profile.getAvatarUrl() : null)
-                .role(user.getRole().name())
-                .status(user.getStatus().name())
-                .preferredLanguage(profile != null ? profile.getPreferredLanguage() : "en")
-                .followersCount(profile != null && profile.getFollowerCount() != null ? profile.getFollowerCount() : 0)
-                .followingCount(profile != null && profile.getFollowingCount() != null ? profile.getFollowingCount() : 0)
-                .recipesCount(profile != null && profile.getRecipeCount() != null ? profile.getRecipeCount() : 0)
-                .subscriptionPlan(user.getSubscriptionPlan())
-                .build())
+            .user(buildUserInfo(user, profile))
             .build();
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // Helpers
+    // ─────────────────────────────────────────────────────────
+
+    private AuthResponse.UserInfo buildUserInfo(User user, UserProfile profile) {
+        AuthResponse.UserInfo ui = new AuthResponse.UserInfo();
+        ui.setId(user.getId());
+        ui.setEmail(user.getEmail());
+        ui.setFirstName(profile != null ? profile.getFirstName() : null);
+        ui.setLastName(profile != null ? profile.getLastName() : null);
+        ui.setAvatarUrl(profile != null ? profile.getAvatarUrl() : null);
+        ui.setRole(user.getRole().name());
+        ui.setStatus(user.getStatus().name());
+        ui.setPreferredLanguage(profile != null && profile.getPreferredLanguage() != null
+            ? profile.getPreferredLanguage() : "en");
+        ui.setFollowersCount(profile != null && profile.getFollowerCount() != null
+            ? profile.getFollowerCount() : 0);
+        ui.setFollowingCount(profile != null && profile.getFollowingCount() != null
+            ? profile.getFollowingCount() : 0);
+        ui.setRecipesCount(profile != null && profile.getRecipeCount() != null
+            ? profile.getRecipeCount() : 0);
+        ui.setSubscriptionPlan(user.getSubscriptionPlan());
+        ui.setCreatedAt(user.getCreatedAt());
+        return ui;
     }
 }

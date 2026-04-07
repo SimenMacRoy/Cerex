@@ -84,8 +84,11 @@ export const recipeApi = {
   delete: (id: string) =>
     apiClient.delete(`/recipes/${id}`),
 
-  like: (id: string) =>
-    apiClient.post(`/recipes/${id}/like`),
+  like: (id: string, liked: boolean) =>
+    apiClient.post(`/recipes/${id}/like`, null, { params: { liked } }),
+
+  getGroceryList: (id: string, servings: number) =>
+    apiClient.get<ApiResponse<any>>(`/recipes/${id}/grocery-list`, { params: { servings } }),
 
   save: (id: string) =>
     apiClient.post(`/recipes/${id}/save`),
@@ -98,6 +101,18 @@ export const recipeApi = {
 
   getByUser: (userId: string, page = 0) =>
     apiClient.get<PaginatedResponse<RecipeCard>>(`/recipes/user/${userId}`, { params: { page } }),
+
+  getMyRecipes: (page = 0) =>
+    apiClient.get<PaginatedResponse<RecipeCard>>('/recipes/me', { params: { page } }),
+
+  approve: (id: string) =>
+    apiClient.post<ApiResponse<RecipeDetail>>(`/recipes/${id}/approve`),
+
+  reject: (id: string, reason: string) =>
+    apiClient.post<ApiResponse<RecipeDetail>>(`/recipes/${id}/reject`, null, { params: { reason } }),
+
+  publish: (id: string) =>
+    apiClient.post<ApiResponse<RecipeDetail>>(`/recipes/${id}/publish`),
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -227,4 +242,18 @@ export const aiApi = {
 
   analyzeImage: (imageUrl: string) =>
     apiClient.post<ApiResponse<{ ingredients: string[]; suggestedRecipes: RecipeCard[] }>>('/ai/analyze-image', { imageUrl }),
+
+  generateRecipe: (params: {
+    ingredients: string[];
+    cuisine?: string;
+    dietaryRestrictions?: string;
+    servings?: number;
+    difficultyLevel?: string;
+    language?: string;
+  }) =>
+    apiClient.post<ApiResponse<string>>('/ai/generate-recipe', null, { params: {
+      ...params,
+      ingredients: params.ingredients,
+      language: params.language ?? 'fr',
+    }}),
 };

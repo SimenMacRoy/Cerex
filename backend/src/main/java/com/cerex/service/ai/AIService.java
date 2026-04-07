@@ -1,5 +1,7 @@
 package com.cerex.service.ai;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +43,7 @@ public class AIService {
     private String baseUrl;
 
     private RestClient restClient;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private RestClient getRestClient() {
         if (restClient == null) {
@@ -56,6 +59,80 @@ public class AIService {
     // ─────────────────────────────────────────────────────────
     // Recipe Generation
     // ─────────────────────────────────────────────────────────
+
+    /**
+     * Generate a complete, ready-to-save recipe from just the recipe name.
+     * Returns the extracted JSON string from the OpenAI response.
+     */
+    public String generateRecipeFromName(String recipeName) {
+        String prompt = """
+            Tu es un chef cuisinier expert et nutritionniste. Génère une recette complète, authentique et détaillée pour "%s".
+
+            Réponds UNIQUEMENT avec un objet JSON valide (sans texte avant ou après) respectant EXACTEMENT ce schéma:
+            {
+              "title": "Nom exact de la recette",
+              "description": "Description appétissante de 2-3 phrases",
+              "story": "Histoire ou contexte culturel de cette recette (2-3 phrases)",
+              "cuisineType": "AFRICAN|FRENCH|ITALIAN|ASIAN|AMERICAN|MEDITERRANEAN|MIDDLE_EASTERN|INDIAN|JAPANESE|CHINESE|MEXICAN|CAMEROUNAISE|SENEGALAISE|IVOIRIENNE|MAGHREBINE",
+              "courseType": "STARTER|MAIN|DESSERT|SIDE|BREAKFAST|SNACK|BEVERAGE",
+              "recipeType": "DISH|SOUP|SALAD|DESSERT|BEVERAGE|SNACK|BREAD|SAUCE|SIDE_DISH",
+              "difficultyLevel": "EASY|MEDIUM|HARD|EXPERT",
+              "prepTimeMinutes": (entier),
+              "cookTimeMinutes": (entier),
+              "servings": (entier entre 2 et 8),
+              "caloriesKcal": (entier),
+              "proteinG": (décimal),
+              "carbsG": (décimal),
+              "fatG": (décimal),
+              "fiberG": (décimal),
+              "isVegetarian": (bool),
+              "isVegan": (bool),
+              "isGlutenFree": (bool),
+              "isHalal": (bool),
+              "isDairyFree": (bool),
+              "tags": ["tag1", "tag2", "tag3"],
+              "ingredients": [
+                {
+                  "name": "Nom de l'ingrédient",
+                  "quantity": (nombre décimal),
+                  "unit": "g|ml|kg|L|tbsp|tsp|cup|pc|pinch|clove",
+                  "displayText": "description naturelle ex: 2 gros oignons émincés",
+                  "isOptional": (bool),
+                  "groupName": "Pour la sauce|Pour la marinade|null"
+                }
+              ],
+              "steps": [
+                {
+                  "instruction": "Instruction claire et détaillée",
+                  "durationMinutes": (entier ou null),
+                  "tip": "Conseil du chef ou null"
+                }
+              ]
+            }
+            """.formatted(recipeName);
+
+        return callGPTContent(prompt, 3000);
+    }
+
+    /**
+     * Calls GPT and extracts only the text content from choices[0].message.content.
+     */
+    private String callGPTContent(String prompt, int maxTokens) {
+        String rawResponse = callGPT(prompt, maxTokens);
+        try {
+            JsonNode root = objectMapper.readTree(rawResponse);
+            String content = root.path("choices").get(0).path("message").path("content").asText();
+            // Strip markdown code fences if present
+            content = content.trim();
+            if (content.startsWith("```")) {
+                content = content.replaceAll("^```[a-z]*\\n?", "").replaceAll("```$", "").trim();
+            }
+            return content;
+        } catch (Exception e) {
+            log.warn("Could not parse GPT response, returning raw: {}", e.getMessage());
+            return rawResponse;
+        }
+    }
 
     /**
      * Generate a recipe from a list of ingredients and preferences.
@@ -246,7 +323,10 @@ public class AIService {
 
         } catch (Exception e) {
             log.error("Error calling GPT API: {}", e.getMessage());
-            return "{\"error\": \"AI service temporarily unavailable: " + e.getMessage() + "\"}";
+            String msg = e.getMessage() != null && e.getMessage().contains("insufficient_quota")
+                ? "QUOTA_EXCEEDED"
+                : "AI service temporarily unavailable: " + e.getMessage();
+            return "{\"error\": \"" + msg + "\"}";
         }
     }
 

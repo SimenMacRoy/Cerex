@@ -28,7 +28,6 @@ public class AuthResponse {
     private UserInfo user;
 
     @Data
-    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     @JsonInclude(JsonInclude.Include.NON_NULL)

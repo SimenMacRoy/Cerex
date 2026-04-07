@@ -62,4 +62,7 @@ public class RecipeCardDTO {
 
     private String[] tags;
     private Instant publishedAt;
+
+    /** Recipe lifecycle status: DRAFT, PENDING_REVIEW, PUBLISHED, REJECTED */
+    private String status;
 }

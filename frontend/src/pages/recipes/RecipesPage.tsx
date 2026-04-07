@@ -1,8 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { FiFilter, FiGrid, FiList, FiSearch, FiX } from 'react-icons/fi';
+import { FiFilter, FiGrid, FiList, FiSearch, FiX, FiPlus } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
 import { recipeApi } from '@/lib/api';
+import { useAuthStore } from '@/stores/authStore';
 import RecipeCard from '@/components/recipe/RecipeCard';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Button from '@/components/ui/Button';
@@ -16,6 +18,7 @@ const CUISINE_FLAGS: Record<string, string> = {
 
 export default function RecipesPage() {
   const { t } = useTranslation();
+  const { isAuthenticated } = useAuthStore();
   const [page, setPage] = useState(0);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filters, setFilters] = useState<{ cuisine?: string; difficulty?: string }>({});
@@ -70,6 +73,15 @@ export default function RecipesPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="section-title">{t('nav.recipes')}</h1>
         <div className="flex items-center gap-2">
+          {isAuthenticated && (
+            <Link
+              to="/recipes/create"
+              className="flex items-center gap-1.5 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-xl text-sm font-medium transition-colors"
+            >
+              <FiPlus className="w-4 h-4" />
+              Ajouter
+            </Link>
+          )}
           <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-primary-100 text-primary-600' : 'text-gray-400 hover:text-gray-600'}`}>
             <FiGrid className="w-5 h-5" />
           </button>

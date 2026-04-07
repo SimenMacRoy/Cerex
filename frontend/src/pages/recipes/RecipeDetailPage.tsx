@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
-import { FiClock, FiUsers, FiHeart, FiShare2, FiBookmark, FiShoppingCart } from 'react-icons/fi';
+import { FiClock, FiUsers, FiHeart, FiShare2, FiBookmark, FiShoppingCart, FiX, FiMinus, FiPlus } from 'react-icons/fi';
 import { recipeApi } from '@/lib/api';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import StarRating from '@/components/ui/StarRating';
@@ -18,6 +18,8 @@ export default function RecipeDetailPage() {
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [groceryOpen, setGroceryOpen] = useState(false);
+  const [servings, setServings] = useState(4);
 
   const { data, isLoading } = useQuery({
     queryKey: ['recipe', id],
@@ -30,7 +32,7 @@ export default function RecipeDetailPage() {
   });
 
   const likeMutation = useMutation({
-    mutationFn: () => recipeApi.like(id!),
+    mutationFn: () => recipeApi.like(id!, !liked),
     onMutate: () => {
       setLiked((prev) => !prev);
       setLikeCount((prev) => liked ? prev - 1 : prev + 1);
@@ -40,6 +42,12 @@ export default function RecipeDetailPage() {
       setLikeCount((prev) => liked ? prev + 1 : prev - 1);
       toast.error(t('common.error'));
     },
+  });
+
+  const { data: groceryData, isFetching: groceryLoading } = useQuery({
+    queryKey: ['grocery-list', id, servings],
+    queryFn: () => recipeApi.getGroceryList(id!, servings).then((r) => r.data.data),
+    enabled: groceryOpen && !!id,
   });
 
   const saveMutation = useMutation({
@@ -121,10 +129,108 @@ export default function RecipeDetailPage() {
         <Button variant="outline" leftIcon={<FiShare2 className="w-4 h-4" />} onClick={handleShare}>
           {t('recipe.share')}
         </Button>
-        <Button variant="secondary" leftIcon={<FiShoppingCart className="w-4 h-4" />}>
-          {t('recipe.orderIngredients')}
+        <Button
+          variant="secondary"
+          leftIcon={<FiShoppingCart className="w-4 h-4" />}
+          onClick={() => { setServings(recipe.servings ?? 4); setGroceryOpen(true); }}
+        >
+          Commander les ingrédients
         </Button>
       </div>
+
+      {/* Grocery Modal */}
+      {groceryOpen && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-cerex-medium rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+            {/* Modal header */}
+            <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-gray-700">
+              <div>
+                <h3 className="font-display font-bold text-lg">Liste de courses</h3>
+                <p className="text-xs text-gray-500 mt-0.5">{recipe.title}</p>
+              </div>
+              <button onClick={() => setGroceryOpen(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                <FiX className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Servings adjuster */}
+            <div className="flex items-center justify-between px-5 py-3 bg-gray-50 dark:bg-gray-800/50">
+              <span className="text-sm font-medium">Nombre de portions</span>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setServings((s) => Math.max(1, s - 1))}
+                  className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <FiMinus className="w-3.5 h-3.5" />
+                </button>
+                <span className="w-6 text-center font-bold">{servings}</span>
+                <button
+                  onClick={() => setServings((s) => s + 1)}
+                  className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <FiPlus className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Ingredient list */}
+            <div className="flex-1 overflow-y-auto px-5 py-3">
+              {groceryLoading ? (
+                <div className="flex justify-center py-8"><LoadingSpinner /></div>
+              ) : (
+                <div className="space-y-2">
+                  {groceryData?.ingredients?.map((item: any, i: number) => (
+                    <div
+                      key={i}
+                      className={cn(
+                        'flex items-center justify-between py-2.5 border-b border-gray-100 dark:border-gray-700 last:border-0',
+                        item.isOptional && 'opacity-60'
+                      )}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-medium">{item.name}</span>
+                        {item.isOptional && <span className="ml-1 text-xs text-gray-400">(optionnel)</span>}
+                        {item.groupName && <div className="text-xs text-gray-400">{item.groupName}</div>}
+                      </div>
+                      <div className="flex items-center gap-4 ml-3 shrink-0">
+                        <span className="text-sm text-gray-500 min-w-[80px] text-right">
+                          {item.quantity} {item.unit}
+                        </span>
+                        <span className="text-sm font-semibold text-primary-600 dark:text-primary-400 min-w-[70px] text-right">
+                          {Number(item.totalPriceFcfa).toLocaleString('fr-FR')} F
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Total + CTA */}
+            <div className="p-5 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between mb-4">
+                <span className="font-semibold">Total estimé</span>
+                <span className="text-xl font-bold text-primary-600 dark:text-primary-400">
+                  {groceryData ? Number(groceryData.totalEstimatedPriceFcfa).toLocaleString('fr-FR') : '—'} FCFA
+                </span>
+              </div>
+              <p className="text-xs text-gray-400 mb-4">
+                * Prix indicatifs du marché. Les ingrédients optionnels ne sont pas inclus dans le total.
+              </p>
+              <Button
+                className="w-full"
+                leftIcon={<FiShoppingCart className="w-4 h-4" />}
+                onClick={() => {
+                  toast.success('Liste de courses enregistrée ! Rendez-vous à l\'épicerie.');
+                  setGroceryOpen(false);
+                }}
+              >
+                Confirmer la liste de courses
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Description */}
       <p className="text-gray-600 dark:text-gray-400 mb-8 text-lg leading-relaxed">{recipe.description}</p>

@@ -157,10 +157,19 @@ public class RecipeController {
     @Operation(summary = "Toggle like on a recipe")
     public ResponseEntity<ApiResponse<String>> toggleLike(
             @PathVariable UUID id,
-            @RequestParam boolean liked,
+            @RequestParam(defaultValue = "true") boolean liked,
             @AuthenticationPrincipal CerexUserDetails currentUser) {
         recipeService.toggleLike(id, currentUser.getUserId(), liked);
         return ResponseEntity.ok(ApiResponse.ok(liked ? "Recipe liked" : "Like removed"));
+    }
+
+    @GetMapping("/{id}/grocery-list")
+    @Operation(summary = "Get grocery shopping list for a recipe with prices in FCFA")
+    public ResponseEntity<ApiResponse<java.util.Map<String, Object>>> getGroceryList(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "4") int servings) {
+        java.util.Map<String, Object> list = recipeService.getGroceryList(id, servings);
+        return ResponseEntity.ok(ApiResponse.ok(list));
     }
 
     @DeleteMapping("/{id}")

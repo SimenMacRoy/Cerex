@@ -12,6 +12,7 @@ const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage'));
 const RecipesPage = lazy(() => import('@/pages/recipes/RecipesPage'));
 const RecipeDetailPage = lazy(() => import('@/pages/recipes/RecipeDetailPage'));
 const CreateRecipePage = lazy(() => import('@/pages/recipes/CreateRecipePage'));
+const MyRecipesPage = lazy(() => import('@/pages/recipes/MyRecipesPage'));
 const RestaurantsPage = lazy(() => import('@/pages/restaurants/RestaurantsPage'));
 const RestaurantDetailPage = lazy(() => import('@/pages/restaurants/RestaurantDetailPage'));
 const GroceryPage = lazy(() => import('@/pages/grocery/GroceryPage'));
@@ -24,6 +25,7 @@ const ProfilePage = lazy(() => import('@/pages/social/ProfilePage'));
 const NotificationsPage = lazy(() => import('@/pages/social/NotificationsPage'));
 const SearchPage = lazy(() => import('@/pages/SearchPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
+const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'));
 
 // ─── Protected Route ──────────────────────────────────────
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -54,10 +56,11 @@ export default function AppRoutes() {
           <Route path="/" element={<HomePage />} />
           <Route path="/search" element={<SearchPage />} />
           
-          {/* Recipes */}
+          {/* Recipes — static paths must come before /:id */}
           <Route path="/recipes" element={<RecipesPage />} />
-          <Route path="/recipes/:id" element={<RecipeDetailPage />} />
           <Route path="/recipes/create" element={<ProtectedRoute><CreateRecipePage /></ProtectedRoute>} />
+          <Route path="/recipes/me" element={<ProtectedRoute><MyRecipesPage /></ProtectedRoute>} />
+          <Route path="/recipes/:id" element={<RecipeDetailPage />} />
 
           {/* Restaurants */}
           <Route path="/restaurants" element={<RestaurantsPage />} />
@@ -71,6 +74,9 @@ export default function AppRoutes() {
           <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
           <Route path="/orders" element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>} />
           <Route path="/orders/:id/tracking" element={<ProtectedRoute><OrderTrackingPage /></ProtectedRoute>} />
+
+          {/* Admin */}
+          <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
 
           {/* Social */}
           <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import {
   FiHome, FiSearch, FiShoppingCart, FiBell, FiUser, FiMenu, FiX,
   FiSun, FiMoon, FiGlobe, FiLogOut, FiBookOpen, FiShoppingBag,
-  FiUsers, FiMapPin,
+  FiUsers, FiMapPin, FiList, FiSettings,
 } from 'react-icons/fi';
 import { useAuthStore } from '@/stores/authStore';
 import { useThemeStore } from '@/stores/themeStore';
@@ -132,6 +132,24 @@ export default function MainLayout() {
                           <FiUser className="w-4 h-4" />
                           {t('nav.profile')}
                         </Link>
+                        <Link
+                          to="/recipes/me"
+                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                          onClick={() => setProfileMenuOpen(false)}
+                        >
+                          <FiList className="w-4 h-4" />
+                          Mes recettes
+                        </Link>
+                        {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') && (
+                          <Link
+                            to="/admin"
+                            className="flex items-center gap-2 px-4 py-2 text-sm text-primary-600 dark:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+                            onClick={() => setProfileMenuOpen(false)}
+                          >
+                            <FiSettings className="w-4 h-4" />
+                            Dashboard Admin
+                          </Link>
+                        )}
                         <Link
                           to="/orders"
                           className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"

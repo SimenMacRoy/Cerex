@@ -36,7 +36,7 @@ public class CreateRecipeRequest {
     private UUID cultureId;
     private UUID categoryId;
 
-    @NotNull(message = "Recipe type is required")
+    // Optional — defaults to STANDARD if not provided
     private String recipeType;
 
     private String cuisineType;
@@ -97,7 +97,7 @@ public class CreateRecipeRequest {
 
     private String[] tags;
 
-    /** DRAFT or PUBLISHED (submit directly for review) */
+    /** DRAFT or PENDING_REVIEW */
     private String status;
 
     // ── Nested request DTOs ─────────────────────────────────
@@ -107,7 +107,15 @@ public class CreateRecipeRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class IngredientRequest {
-        @NotNull private UUID ingredientId;
+        /**
+         * Optional: ID from the ingredient master catalog.
+         * If null, {@code name} is used to look up or auto-create the ingredient.
+         */
+        private UUID ingredientId;
+
+        /** Free-text ingredient name (used when ingredientId is not provided). */
+        private String name;
+
         private BigDecimal quantity;
         private String unit;
         private String displayText;

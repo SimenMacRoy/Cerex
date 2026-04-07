@@ -30,6 +30,7 @@ services:
       - SPRING_ELASTICSEARCH_URIS=http://elasticsearch:9200
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - CEREX_JWT_SECRET=dev-secret-key-change-in-production-minimum-32-characters-long
+      - OPENAI_API_KEY=your-openai-api-key-here
     depends_on:
       postgres:
         condition: service_healthy

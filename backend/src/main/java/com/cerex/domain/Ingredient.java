@@ -75,6 +75,10 @@ public class Ingredient {
     @Column(name = "calories_per_100g")
     private Integer caloriesPer100g;
 
+    /** Estimated market price in FCFA per base unit (e.g., per kg, per piece). */
+    @Column(name = "estimated_price_fcfa", precision = 10, scale = 2)
+    private java.math.BigDecimal estimatedPriceFcfa;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

@@ -6,6 +6,7 @@ import com.cerex.exception.BusinessException;
 import com.cerex.exception.ResourceNotFoundException;
 import com.cerex.exception.UnauthorizedException;
 import com.cerex.mapper.RecipeMapper;
+import com.cerex.repository.IngredientRepository;
 import com.cerex.repository.RecipeRepository;
 import com.cerex.repository.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,7 @@ public class RecipeService {
 
     private final RecipeRepository recipeRepository;
     private final UserProfileRepository profileRepository;
+    private final IngredientRepository ingredientRepository;
     private final RecipeMapper recipeMapper;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -73,11 +75,10 @@ public class RecipeService {
     }
 
     /**
-     * List published recipes with pagination.
+     * List published recipes (no filters).
      */
     public Page<RecipeCardDTO> listPublishedRecipes(Pageable pageable) {
-        Page<Recipe> recipePage = recipeRepository.findByStatus(Recipe.RecipeStatus.PUBLISHED, pageable);
-        return recipePage.map(this::buildCardDTO);
+        return recipeRepository.findByStatus(Recipe.RecipeStatus.PUBLISHED, pageable).map(this::buildCardDTO);
     }
 
     /**
@@ -122,19 +123,13 @@ public class RecipeService {
     public Page<RecipeCardDTO> filterRecipes(
             String cuisineType, String difficultyLevel, String keyword, Pageable pageable) {
 
-        Recipe.DifficultyLevel difficulty = null;
-        if (difficultyLevel != null && !difficultyLevel.isBlank()) {
-            try {
-                difficulty = Recipe.DifficultyLevel.valueOf(difficultyLevel.toUpperCase());
-            } catch (IllegalArgumentException ignored) {
-                // Unknown difficulty — skip filter
-            }
-        }
-
         String cuisine = (cuisineType != null && !cuisineType.isBlank()) ? cuisineType : null;
+        String difficulty = (difficultyLevel != null && !difficultyLevel.isBlank()) ? difficultyLevel.toUpperCase() : null;
         String search = (keyword != null && !keyword.isBlank()) ? keyword : null;
 
-        Page<Recipe> page = recipeRepository.findByFilters(cuisine, difficulty, search, pageable);
+        // Strip JPA sort from pageable — native query has its own ORDER BY
+        Pageable unsorted = org.springframework.data.domain.PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+        Page<Recipe> page = recipeRepository.findByFilters(cuisine, difficulty, search, unsorted);
         return page.map(this::buildCardDTO);
     }
 
@@ -161,6 +156,59 @@ public class RecipeService {
         return page.map(this::buildCardDTO);
     }
 
+    /**
+     * Build a grocery shopping list for a recipe, scaled to the requested servings.
+     */
+    public java.util.Map<String, Object> getGroceryList(UUID recipeId, int requestedServings) {
+        Recipe recipe = recipeRepository.findById(recipeId)
+            .orElseThrow(() -> new ResourceNotFoundException("Recipe", "id", recipeId));
+
+        int baseServings = recipe.getServings() != null ? recipe.getServings() : 1;
+        double ratio = requestedServings > 0
+            ? (double) requestedServings / baseServings
+            : 1.0;
+
+        java.math.BigDecimal totalPrice = java.math.BigDecimal.ZERO;
+        java.util.List<java.util.Map<String, Object>> items = new java.util.ArrayList<>();
+
+        for (com.cerex.domain.RecipeIngredient ri : recipe.getIngredients()) {
+            java.util.Map<String, Object> item = new java.util.LinkedHashMap<>();
+            com.cerex.domain.Ingredient ing = ri.getIngredient();
+
+            java.math.BigDecimal qty = ri.getQuantity() != null
+                ? ri.getQuantity().multiply(java.math.BigDecimal.valueOf(ratio)).setScale(2, java.math.RoundingMode.HALF_UP)
+                : java.math.BigDecimal.ZERO;
+
+            java.math.BigDecimal unitPrice = ing != null && ing.getEstimatedPriceFcfa() != null
+                ? ing.getEstimatedPriceFcfa()
+                : java.math.BigDecimal.valueOf(300);
+
+            java.math.BigDecimal lineTotal = unitPrice.multiply(qty).setScale(0, java.math.RoundingMode.HALF_UP);
+            if (!Boolean.TRUE.equals(ri.getIsOptional())) {
+                totalPrice = totalPrice.add(lineTotal);
+            }
+
+            item.put("name",         ing != null ? ing.getName() : ri.getDisplayText());
+            item.put("quantity",     qty);
+            item.put("unit",         ri.getUnit());
+            item.put("displayText",  ri.getDisplayText());
+            item.put("isOptional",   ri.getIsOptional());
+            item.put("groupName",    ri.getGroupName());
+            item.put("unitPriceFcfa", unitPrice);
+            item.put("totalPriceFcfa", lineTotal);
+            items.add(item);
+        }
+
+        java.util.Map<String, Object> result = new java.util.LinkedHashMap<>();
+        result.put("recipeId",       recipe.getId());
+        result.put("recipeTitle",    recipe.getTitle());
+        result.put("baseServings",   baseServings);
+        result.put("requestedServings", requestedServings);
+        result.put("ingredients",    items);
+        result.put("totalEstimatedPriceFcfa", totalPrice);
+        return result;
+    }
+
     // ─────────────────────────────────────────────────────────
     // WRITE Operations
     // ─────────────────────────────────────────────────────────
@@ -181,7 +229,9 @@ public class RecipeService {
             .countryId(request.getCountryId())
             .cultureId(request.getCultureId())
             .categoryId(request.getCategoryId())
-            .recipeType(Recipe.RecipeType.valueOf(request.getRecipeType()))
+            .recipeType(request.getRecipeType() != null
+                ? Recipe.RecipeType.valueOf(request.getRecipeType())
+                : Recipe.RecipeType.DISH)
             .cuisineType(request.getCuisineType())
             .courseType(request.getCourseType())
             .difficultyLevel(Recipe.DifficultyLevel.valueOf(request.getDifficultyLevel()))
@@ -211,6 +261,39 @@ public class RecipeService {
             .tags(request.getTags() != null ? request.getTags() : new String[]{})
             .status(Recipe.RecipeStatus.DRAFT)
             .build();
+
+        // Add ingredients — look up by ID or by name (auto-create if not found)
+        if (request.getIngredients() != null) {
+            int order = 0;
+            for (CreateRecipeRequest.IngredientRequest ingReq : request.getIngredients()) {
+                Ingredient ingredient = null;
+
+                if (ingReq.getIngredientId() != null) {
+                    ingredient = ingredientRepository.findById(ingReq.getIngredientId()).orElse(null);
+                }
+
+                if (ingredient == null && ingReq.getName() != null && !ingReq.getName().isBlank()) {
+                    String name = ingReq.getName().trim();
+                    ingredient = ingredientRepository.findByNameIgnoreCase(name)
+                        .orElseGet(() -> ingredientRepository.save(
+                            Ingredient.builder().name(name).build()
+                        ));
+                }
+
+                if (ingredient == null) continue; // skip if no name and no id
+
+                RecipeIngredient ri = RecipeIngredient.builder()
+                    .ingredient(ingredient)
+                    .quantity(ingReq.getQuantity())
+                    .unit(ingReq.getUnit())
+                    .displayText(ingReq.getDisplayText())
+                    .isOptional(ingReq.getIsOptional() != null ? ingReq.getIsOptional() : false)
+                    .groupName(ingReq.getGroupName())
+                    .displayOrder(order++)
+                    .build();
+                recipe.addIngredient(ri);
+            }
+        }
 
         // Add steps
         if (request.getSteps() != null) {
@@ -353,6 +436,9 @@ public class RecipeService {
         var profile = profileRepository.findByUserId(recipe.getAuthorId()).orElse(null);
         dto.setAuthorName(profile != null ? profile.getDisplayName() : "Unknown");
         dto.setAuthorAvatarUrl(profile != null ? profile.getAvatarUrl() : null);
+
+        // Always expose the status so the frontend can display moderation state
+        dto.setStatus(recipe.getStatus() != null ? recipe.getStatus().name() : null);
 
         return dto;
     }

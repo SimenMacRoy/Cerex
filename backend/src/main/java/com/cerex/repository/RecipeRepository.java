@@ -78,6 +78,12 @@ public interface RecipeRepository extends JpaRepository<Recipe, UUID>,
      */
     long countByAuthorIdAndStatus(UUID authorId, RecipeStatus status);
 
+    /** Count all recipes by status (for admin dashboard). */
+    long countByStatus(RecipeStatus status);
+
+    /** Count recipes created after a given instant (for weekly stats). */
+    long countByCreatedAtAfter(java.time.Instant since);
+
     // ─────────────────────────────────────────────────────────────
     // Author / Feed Queries
     // ─────────────────────────────────────────────────────────────
@@ -232,17 +238,29 @@ public interface RecipeRepository extends JpaRepository<Recipe, UUID>,
      * Filter published recipes by optional cuisine type, difficulty level and keyword.
      * Supports the main recipes listing page with combined filters.
      */
-    @Query("""
-        SELECT r FROM Recipe r
+    @Query(value = """
+        SELECT r.* FROM recipes_schema.recipes r
         WHERE r.status = 'PUBLISHED'
-          AND (:cuisineType IS NULL OR UPPER(r.cuisineType) = UPPER(:cuisineType))
-          AND (:difficultyLevel IS NULL OR r.difficultyLevel = :difficultyLevel)
-          AND (:keyword IS NULL OR LOWER(r.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
-               OR LOWER(r.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
-        """)
+          AND r.deleted_at IS NULL
+          AND (:cuisineType IS NULL OR UPPER(r.cuisine_type) = UPPER(CAST(:cuisineType AS VARCHAR)))
+          AND (:difficultyLevel IS NULL OR r.difficulty_level = CAST(:difficultyLevel AS VARCHAR))
+          AND (:keyword IS NULL
+               OR LOWER(r.title) LIKE LOWER(CONCAT('%', CAST(:keyword AS VARCHAR), '%'))
+               OR LOWER(r.description) LIKE LOWER(CONCAT('%', CAST(:keyword AS VARCHAR), '%')))
+        ORDER BY r.published_at DESC NULLS LAST
+        """, countQuery = """
+        SELECT COUNT(*) FROM recipes_schema.recipes r
+        WHERE r.status = 'PUBLISHED'
+          AND r.deleted_at IS NULL
+          AND (:cuisineType IS NULL OR UPPER(r.cuisine_type) = UPPER(CAST(:cuisineType AS VARCHAR)))
+          AND (:difficultyLevel IS NULL OR r.difficulty_level = CAST(:difficultyLevel AS VARCHAR))
+          AND (:keyword IS NULL
+               OR LOWER(r.title) LIKE LOWER(CONCAT('%', CAST(:keyword AS VARCHAR), '%'))
+               OR LOWER(r.description) LIKE LOWER(CONCAT('%', CAST(:keyword AS VARCHAR), '%')))
+        """, nativeQuery = true)
     Page<Recipe> findByFilters(
         @Param("cuisineType")     String cuisineType,
-        @Param("difficultyLevel") DifficultyLevel difficultyLevel,
+        @Param("difficultyLevel") String difficultyLevel,
         @Param("keyword")         String keyword,
         Pageable pageable
     );
