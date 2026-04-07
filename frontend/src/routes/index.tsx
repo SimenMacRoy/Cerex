@@ -16,6 +16,7 @@ const MyRecipesPage = lazy(() => import('@/pages/recipes/MyRecipesPage'));
 const RestaurantsPage = lazy(() => import('@/pages/restaurants/RestaurantsPage'));
 const RestaurantDetailPage = lazy(() => import('@/pages/restaurants/RestaurantDetailPage'));
 const GroceryPage = lazy(() => import('@/pages/grocery/GroceryPage'));
+const IngredientOrderPage = lazy(() => import('@/pages/orders/IngredientOrderPage'));
 const CartPage = lazy(() => import('@/pages/orders/CartPage'));
 const CheckoutPage = lazy(() => import('@/pages/orders/CheckoutPage'));
 const OrderTrackingPage = lazy(() => import('@/pages/orders/OrderTrackingPage'));
@@ -61,6 +62,7 @@ export default function AppRoutes() {
           <Route path="/recipes/create" element={<ProtectedRoute><CreateRecipePage /></ProtectedRoute>} />
           <Route path="/recipes/me" element={<ProtectedRoute><MyRecipesPage /></ProtectedRoute>} />
           <Route path="/recipes/:id" element={<RecipeDetailPage />} />
+          <Route path="/recipes/:id/order-ingredients" element={<IngredientOrderPage />} />
 
           {/* Restaurants */}
           <Route path="/restaurants" element={<RestaurantsPage />} />

@@ -476,3 +476,79 @@ export interface CartItem {
   restaurantId: string;
   restaurantName: string;
 }
+
+// ─── Ingredient Sourcing ──────────────────────────────────
+export interface IngredientSourcingRequest {
+  recipeId: string;
+  servings: number;
+  latitude: number;
+  longitude: number;
+  radiusKm?: number;
+  currency?: string;
+}
+
+export interface IngredientSourcingDTO {
+  recipeId: string;
+  recipeTitle: string;
+  requestedServings: number;
+  storePlans: StorePlan[];
+  unavailableItems: UnavailableItem[];
+  grandTotal: number;
+  currency: string;
+  hasBulkItems: boolean;
+  userLatitude: number;
+  userLongitude: number;
+}
+
+export interface StorePlan {
+  groceryId: string;
+  groceryName: string;
+  grocerySlug: string;
+  city: string;
+  addressLine1: string;
+  latitude: number;
+  longitude: number;
+  distanceKm: number;
+  averageRating: number;
+  supportsDelivery: boolean;
+  supportsPickup: boolean;
+  minimumOrderAmount: number;
+  items: SourcingItem[];
+  storeTotal: number;
+  currency: string;
+  coverageCount: number;
+  totalNeeded: number;
+}
+
+export interface SourcingItem {
+  productId: string;
+  ingredientId: string;
+  ingredientName: string;
+  productName: string;
+  productDescription: string;
+  recipeQuantity: number;
+  recipeUnit: string;
+  displayText: string;
+  isOptional: boolean;
+  price: number;
+  pricePerUnit: number;
+  productUnit: string;
+  currency: string;
+  lineTotal: number;
+  bulkOnly: boolean;
+  minimumQuantity: number;
+  organic: boolean;
+  local: boolean;
+  fairTrade: boolean;
+  ecoScore: number;
+}
+
+export interface UnavailableItem {
+  ingredientId: string;
+  ingredientName: string;
+  recipeQuantity: number;
+  recipeUnit: string;
+  displayText: string;
+  isOptional: boolean;
+  estimatedPriceFcfa: number;
+}

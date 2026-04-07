@@ -26,6 +26,8 @@ import type {
   AIMealPlan,
   ApiResponse,
   PaginatedResponse,
+  IngredientSourcingRequest,
+  IngredientSourcingDTO,
 } from '@/types';
 
 // ═══════════════════════════════════════════════════════════
@@ -256,4 +258,13 @@ export const aiApi = {
       ingredients: params.ingredients,
       language: params.language ?? 'fr',
     }}),
+};
+
+// ═══════════════════════════════════════════════════════════
+// INGREDIENT ORDER API
+// ═══════════════════════════════════════════════════════════
+export const ingredientOrderApi = {
+  /** Get a smart sourcing quote: nearby stores, price comparison, bulk warnings. */
+  getQuote: (request: IngredientSourcingRequest) =>
+    apiClient.post<ApiResponse<IngredientSourcingDTO>>('/ingredient-orders/quote', request),
 };

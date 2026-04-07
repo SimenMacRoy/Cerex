@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -14,6 +14,7 @@ import toast from 'react-hot-toast';
 export default function RecipeDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -221,11 +222,11 @@ export default function RecipeDetailPage() {
                 className="w-full"
                 leftIcon={<FiShoppingCart className="w-4 h-4" />}
                 onClick={() => {
-                  toast.success('Liste de courses enregistrée ! Rendez-vous à l\'épicerie.');
                   setGroceryOpen(false);
+                  navigate(`/recipes/${id}/order-ingredients?servings=${servings}`);
                 }}
               >
-                Confirmer la liste de courses
+                Trouver les épiceries proches
               </Button>
             </div>
           </div>
