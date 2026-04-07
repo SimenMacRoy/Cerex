@@ -3,21 +3,24 @@
 # ─────────────────────────────────────────────────────────
 
 # Stage 1: Build
-FROM maven:3.9-eclipse-temurin-21-alpine AS builder
+FROM eclipse-temurin:21-jdk-alpine AS builder
 
 WORKDIR /app
 
-# Copy pom.xml first (for dependency caching)
+# Copy Maven wrapper and pom.xml first (for dependency caching)
 COPY pom.xml .
+COPY .mvn .mvn
+COPY mvnw .
+RUN chmod +x mvnw
 
 # Download dependencies (cached unless pom.xml changes)
-RUN mvn dependency:go-offline -B
+RUN ./mvnw dependency:go-offline -B
 
 # Copy source code
 COPY src src
 
 # Build without tests (tests run in CI)
-RUN mvn package -Dmaven.test.skip=true -B
+RUN ./mvnw package -DskipTests -B
 
 # ─────────────────────────────────────────────────────────
 # Stage 2: Runtime

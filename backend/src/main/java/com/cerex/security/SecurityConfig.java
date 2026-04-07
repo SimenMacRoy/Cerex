@@ -72,6 +72,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/social/users/{userId}/posts").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/social/hashtags/**").permitAll()
 
+                // Public ingredient sourcing quote (no login required for browsing prices)
+                .requestMatchers(HttpMethod.POST, "/api/v1/ingredient-orders/quote").permitAll()
+
                 // Public eco community stats
                 .requestMatchers(HttpMethod.GET, "/api/v1/eco/community-stats").permitAll()
 

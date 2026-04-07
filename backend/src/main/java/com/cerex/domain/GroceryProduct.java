@@ -98,6 +98,21 @@ public class GroceryProduct {
     @Column(name = "origin_country", length = 100)
     private String originCountry;
 
+    /** If true, this product can only be sold in wholesale quantities (not retail). */
+    @Column(name = "is_bulk_only")
+    @Builder.Default
+    private Boolean isBulkOnly = false;
+
+    /** Minimum purchase quantity (e.g., 5 for bulk-only items). Defaults to 1. */
+    @Column(name = "minimum_quantity")
+    @Builder.Default
+    private Integer minimumQuantity = 1;
+
+    /** Currency code for the price (ISO 4217, e.g., XAF, EUR, USD). */
+    @Column(name = "currency", length = 3)
+    @Builder.Default
+    private String currency = "XAF";
+
     // ─────────────────────────────────────────────────────────
     // Dietary & Quality
     // ─────────────────────────────────────────────────────────
